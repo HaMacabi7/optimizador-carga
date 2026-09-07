@@ -5,6 +5,7 @@ from modelos.paquete import Paquete
 
 
 def _cantidad_decimales(valor: float) -> int:
+    # Calcula cuántos decimales necesitamos conservar, por ejemplo 1.50 -> 2.
     decimal = Decimal(str(valor)).normalize()
     return max(0, -decimal.as_tuple().exponent)
 
@@ -17,6 +18,8 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
     """
     inicio = time.perf_counter()
     n = len(paquetes)
+    # La tabla trabaja con números enteros. Escalamos los pesos para no perder
+    # los decimales: 1.5 kg pasa a ser 15 si la precisión usada es de 1 decimal.
     precision = max(
         [_cantidad_decimales(capacidad_maxima)]
         + [_cantidad_decimales(p.peso) for p in paquetes]
@@ -24,10 +27,11 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
     escala = 10 ** precision
     capacidad = int(Decimal(str(capacidad_maxima)) * escala)
 
-    # Matriz DP de dimensiones (n + 1) x (capacidad + 1)
+    # Cada fila representa los paquetes revisados y cada columna una capacidad.
+    # En cada casilla guardamos la mayor ganancia posible hasta ese punto.
     dp = [[0.0 for _ in range(capacidad + 1)] for _ in range(n + 1)]
 
-    # Construcción de la tabla
+    # Para cada paquete elegimos entre usarlo o dejar la mejor opción anterior.
     for i in range(1, n + 1):
         p = paquetes[i - 1]
         peso_int = int(Decimal(str(p.peso)) * escala)
@@ -37,14 +41,14 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
             else:
                 dp[i][w] = dp[i - 1][w]
 
-    # Reconstrucción de la solución óptima
+    # Retrocedemos por la tabla para descubrir qué paquetes formaron la solución.
     seleccionados = []
     w = capacidad
     for i in range(n, 0, -1):
         if dp[i][w] != dp[i - 1][w]:
             p = paquetes[i - 1]
             seleccionados.append(p)
-            w -= int(p.peso)
+            w -= int(Decimal(str(p.peso)) * escala)
 
     peso_total = sum(p.peso for p in seleccionados)
     mejor_valor = dp[n][capacidad]

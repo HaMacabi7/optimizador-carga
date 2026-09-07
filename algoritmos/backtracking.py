@@ -19,7 +19,8 @@ def resolver_backtracking(paquetes: List[Paquete], capacidad_maxima: float) -> T
     def backtrack(indice: int, peso_actual: float, valor_actual: float, seleccion_actual: List[Paquete]):
         nonlocal mejor_valor, mejor_peso, mejor_seleccion
 
-        # Poda, si excedemos la capacidad del camión, cortamos esta rama
+        # Si esta combinación ya se pasó de peso, no tiene sentido seguirla.
+        # Así evitamos revisar varias opciones que ya sabemos que no sirven.
         if peso_actual > capacidad_maxima:
             return
 
@@ -29,17 +30,17 @@ def resolver_backtracking(paquetes: List[Paquete], capacidad_maxima: float) -> T
             mejor_peso = peso_actual
             mejor_seleccion = list(seleccion_actual)
 
-        # Caso base, revisamos todos los paquetes disponibles
+        # Cuando ya no quedan paquetes, termina este camino de búsqueda.
         if indice == n:
             return
 
-        # Opción 1, Incluir el paquete actual
+        # Probamos primero incluir el paquete actual.
         p = paquetes[indice]
         seleccion_actual.append(p)
         backtrack(indice + 1, peso_actual + p.peso, valor_actual + p.valor, seleccion_actual)
-        seleccion_actual.pop()  # Retroceso (backtrack)
+        seleccion_actual.pop()  # Quitarlo permite probar la otra opción.
 
-        # Opción 2, No incluir el paquete actual
+        # Después probamos el mismo camino sin incluirlo.
         backtrack(indice + 1, peso_actual, valor_actual, seleccion_actual)
 
     backtrack(0, 0.0, 0.0, [])

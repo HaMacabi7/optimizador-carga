@@ -9,7 +9,8 @@ def resolver_voraz(paquetes: List[Paquete], capacidad_maxima: float) -> Tuple[Li
     """
     inicio = time.perf_counter()
 
-    # Ordenar paquetes descendentemente por ratio (valor/peso)
+    # Primero pone arriba los paquetes que dan más valor por cada kilo.
+    # Esta estrategia es rápida, aunque no siempre encuentra la mejor combinación.
     paquetes_ordenados = sorted(paquetes, key=lambda p: p.ratio, reverse=True)
 
     seleccionados = []
@@ -17,6 +18,7 @@ def resolver_voraz(paquetes: List[Paquete], capacidad_maxima: float) -> Tuple[Li
     valor_acumulado = 0.0
 
     for p in paquetes_ordenados:
+        # Se agrega el paquete solo si todavía cabe en el vehículo.
         if peso_acumulado + p.peso <= capacidad_maxima:
             seleccionados.append(p)
             peso_acumulado += p.peso

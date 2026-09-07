@@ -17,12 +17,14 @@ def resolver_fuerza_bruta(paquetes: List[Paquete], capacidad_maxima: float) -> T
     mejor_peso = 0.0
     n = len(paquetes)
 
-    # Genera todas las combinaciones de tamaño 1 hasta n
+    # Prueba grupos de 1, 2, 3... paquetes hasta revisar todas las opciones.
+    # Es sencillo de entender, pero crece muy rápido cuando hay muchos paquetes.
     for r in range(1, n + 1):
         for combo in combinations(paquetes, r):
             peso_total = sum(p.peso for p in combo)
             if peso_total <= capacidad_maxima:
                 valor_total = sum(p.valor for p in combo)
+                # Solo guardamos la combinación válida que deja más ganancia.
                 if valor_total > mejor_valor:
                     mejor_valor = valor_total
                     mejor_peso = peso_total

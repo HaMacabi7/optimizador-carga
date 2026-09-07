@@ -112,7 +112,8 @@ class VentanaOptimizador(tk.Tk):
             messagebox.showerror("Error", "La capacidad debe ser un número mayor a cero.")
             return
 
-        # Prevención: Fuerza Bruta con n > 22 congelaría la app
+        # La fuerza bruta revisa todas las combinaciones y puede tardar mucho.
+        # Por eso bloqueamos cargas demasiado grandes para no congelar la ventana.
         if len(self.paquetes) > 22 and self.combo_algoritmo.get() in ["Fuerza Bruta", "Comparar Todos"]:
             messagebox.showwarning("Límite de Fuerza Bruta",
                                    f"Fuerza Bruta tiene complejidad O(2^n). Con {len(self.paquetes)} paquetes "
@@ -126,24 +127,28 @@ class VentanaOptimizador(tk.Tk):
         nombres = []
 
         if seleccion in ["Fuerza Bruta", "Comparar Todos"]:
+            # Este método busca la mejor respuesta revisando todas las combinaciones.
             items, peso, val, t = resolver_fuerza_bruta(self.paquetes, capacidad)
             self._mostrar_resumen("Fuerza Bruta", items, peso, val, t)
             nombres.append("Fuerza Bruta")
             tiempos.append(t)
 
         if seleccion in ["Voraz (Greedy)", "Comparar Todos"]:
+            # Este método prioriza los paquetes con mejor valor por kilo.
             items, peso, val, t = resolver_voraz(self.paquetes, capacidad)
             self._mostrar_resumen("Voraz (Greedy)", items, peso, val, t)
             nombres.append("Voraz")
             tiempos.append(t)
 
         if seleccion in ["Backtracking", "Comparar Todos"]:
+            # Busca de forma recursiva y descarta caminos que ya superan la capacidad.
             items, peso, val, t = resolver_backtracking(self.paquetes, capacidad)
             self._mostrar_resumen("Backtracking", items, peso, val, t)
             nombres.append("Backtracking")
             tiempos.append(t)
 
         if seleccion in ["Programación Dinámica", "Comparar Todos"]:
+            # Reutiliza resultados parciales para evitar repetir tantos cálculos.
             items, peso, val, t = resolver_programacion_dinamica(self.paquetes, capacidad)
             self._mostrar_resumen("Prog. Dinámica", items, peso, val, t)
             nombres.append("Prog. Dinámica")
