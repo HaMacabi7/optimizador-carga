@@ -1,6 +1,13 @@
 import time
+from decimal import Decimal
 from typing import List, Tuple
 from modelos.paquete import Paquete
+
+
+def _cantidad_decimales(valor: float) -> int:
+    decimal = Decimal(str(valor)).normalize()
+    return max(0, -decimal.as_tuple().exponent)
+
 
 def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: float) -> Tuple[List[Paquete], float, float, float]:
     """
@@ -10,7 +17,12 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
     """
     inicio = time.perf_counter()
     n = len(paquetes)
-    capacidad = int(capacidad_maxima)
+    precision = max(
+        [_cantidad_decimales(capacidad_maxima)]
+        + [_cantidad_decimales(p.peso) for p in paquetes]
+    )
+    escala = 10 ** precision
+    capacidad = int(Decimal(str(capacidad_maxima)) * escala)
 
     # Matriz DP de dimensiones (n + 1) x (capacidad + 1)
     dp = [[0.0 for _ in range(capacidad + 1)] for _ in range(n + 1)]
@@ -18,7 +30,7 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
     # Construcción de la tabla
     for i in range(1, n + 1):
         p = paquetes[i - 1]
-        peso_int = int(p.peso)
+        peso_int = int(Decimal(str(p.peso)) * escala)
         for w in range(1, capacidad + 1):
             if peso_int <= w:
                 dp[i][w] = max(dp[i - 1][w], dp[i - 1][w - peso_int] + p.valor)
