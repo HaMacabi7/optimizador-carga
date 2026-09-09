@@ -12,6 +12,7 @@ from algoritmos.programacion_dinamica import resolver_programacion_dinamica
 
 
 class VentanaOptimizador(tk.Tk):
+    # esta clase arma la ventana y conecta los botones con los algoritmos
     def __init__(self):
         super().__init__()
         self.title("OptiCarga - Sistema de Optimización Logística")
@@ -22,7 +23,7 @@ class VentanaOptimizador(tk.Tk):
         self._crear_interfaz()
 
     def _crear_interfaz(self):
-        # Panel Superior: Carga y configuración
+        # aqui armamos la parte de arriba con los controles principales
         panel_top = ttk.LabelFrame(self, text=" Configuración de Carga y Capacidad ", padding=10)
         panel_top.pack(fill="x", padx=15, pady=8)
 
@@ -40,16 +41,16 @@ class VentanaOptimizador(tk.Tk):
             state="readonly",
             width=22
         )
-        self.combo_algoritmo.current(4)  # Por defecto 'Comparar Todos'
+        self.combo_algoritmo.current(4)  # dejamos comparar todos como opcion inicial
         self.combo_algoritmo.pack(side="left", padx=5)
 
         ttk.Button(panel_top, text="▶ Ejecutar Optimización", command=self._ejecutar).pack(side="left", padx=15)
 
-        # Panel Central: División entre Tabla de Paquetes y Gráfica/Resultados
+        # aqui dividimos la ventana entre los paquetes y los resultados
         panel_central = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
         panel_central.pack(fill="both", expand=True, padx=15, pady=5)
 
-        # 1. Tabla de Paquetes
+        # esta tabla muestra los paquetes que se cargaron
         frame_tabla = ttk.LabelFrame(panel_central, text=" Manifiesto de Paquetes Disponibles ", padding=5)
         panel_central.add(frame_tabla, weight=1)
 
@@ -68,7 +69,7 @@ class VentanaOptimizador(tk.Tk):
         self.tabla.pack(side="left", fill="both", expand=True)
         scroll_y.pack(side="right", fill="y")
 
-        # 2. Panel Derecho: Resultados y Gráfica Matplotlib
+        # este lado muestra los resultados y la grafica
         frame_derecho = ttk.Frame(panel_central)
         panel_central.add(frame_derecho, weight=2)
 
@@ -79,6 +80,7 @@ class VentanaOptimizador(tk.Tk):
         self.frame_grafica.pack(fill="both", expand=True, padx=5)
 
     def _cargar_csv(self):
+        # lee el archivo y convierte cada fila en un objeto paquete
         ruta = filedialog.askopenfilename(filetypes=[("Archivos CSV", "*.csv")])
         if not ruta:
             return
@@ -100,6 +102,7 @@ class VentanaOptimizador(tk.Tk):
             messagebox.showerror("Error de lectura", f"No se pudo leer el archivo CSV:\n{e}")
 
     def _ejecutar(self):
+        # toma la capacidad y ejecuta el algoritmo que eligio el usuario
         if not self.paquetes:
             messagebox.showwarning("Aviso", "Primero debe cargar un archivo CSV con paquetes.")
             return
@@ -112,8 +115,8 @@ class VentanaOptimizador(tk.Tk):
             messagebox.showerror("Error", "La capacidad debe ser un número mayor a cero.")
             return
 
-        # La fuerza bruta revisa todas las combinaciones y puede tardar mucho.
-        # Por eso bloqueamos cargas demasiado grandes para no congelar la ventana.
+        # la fuerza bruta revisa todas las combinaciones y puede tardar mucho
+        # por eso frenamos cargas grandes para que la ventana no se congele
         if len(self.paquetes) > 22 and self.combo_algoritmo.get() in ["Fuerza Bruta", "Comparar Todos"]:
             messagebox.showwarning("Límite de Fuerza Bruta",
                                    f"Fuerza Bruta tiene complejidad O(2^n). Con {len(self.paquetes)} paquetes "
@@ -127,28 +130,28 @@ class VentanaOptimizador(tk.Tk):
         nombres = []
 
         if seleccion in ["Fuerza Bruta", "Comparar Todos"]:
-            # Este método busca la mejor respuesta revisando todas las combinaciones.
+            # busca la mejor respuesta revisando todas las combinaciones
             items, peso, val, t = resolver_fuerza_bruta(self.paquetes, capacidad)
             self._mostrar_resumen("Fuerza Bruta", items, peso, val, t)
             nombres.append("Fuerza Bruta")
             tiempos.append(t)
 
         if seleccion in ["Voraz (Greedy)", "Comparar Todos"]:
-            # Este método prioriza los paquetes con mejor valor por kilo.
+            # empieza por los paquetes con mejor valor por kilo
             items, peso, val, t = resolver_voraz(self.paquetes, capacidad)
             self._mostrar_resumen("Voraz (Greedy)", items, peso, val, t)
             nombres.append("Voraz")
             tiempos.append(t)
 
         if seleccion in ["Backtracking", "Comparar Todos"]:
-            # Busca de forma recursiva y descarta caminos que ya superan la capacidad.
+            # prueba caminos y descarta los que ya superan la capacidad
             items, peso, val, t = resolver_backtracking(self.paquetes, capacidad)
             self._mostrar_resumen("Backtracking", items, peso, val, t)
             nombres.append("Backtracking")
             tiempos.append(t)
 
         if seleccion in ["Programación Dinámica", "Comparar Todos"]:
-            # Reutiliza resultados parciales para evitar repetir tantos cálculos.
+            # aprovecha resultados anteriores para no repetir tantos calculos
             items, peso, val, t = resolver_programacion_dinamica(self.paquetes, capacidad)
             self._mostrar_resumen("Prog. Dinámica", items, peso, val, t)
             nombres.append("Prog. Dinámica")
@@ -158,6 +161,7 @@ class VentanaOptimizador(tk.Tk):
             self._dibujar_grafica(nombres, tiempos)
 
     def _mostrar_resumen(self, metodo: str, items: list, peso: float, val: float, t: float):
+        # prepara el texto que se muestra despues de cada algoritmo
         ids = ", ".join(p.id_paquete for p in items)
         linea = (f"[{metodo}]\n"
                  f" • Paquetes ({len(items)}): {ids}\n"
@@ -166,6 +170,7 @@ class VentanaOptimizador(tk.Tk):
         self.txt_resultados.insert(tk.END, linea)
 
     def _dibujar_grafica(self, nombres: list, tiempos: list):
+        # crea una grafica sencilla para comparar los tiempos
         for widget in self.frame_grafica.winfo_children():
             widget.destroy()
 
