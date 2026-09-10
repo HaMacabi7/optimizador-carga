@@ -31,7 +31,7 @@ class VentanaOptimizador(tk.Tk):
 
         ttk.Label(panel_top, text="Capacidad Vehicular (kg):").pack(side="left", padx=(20, 5))
         self.entry_capacidad = ttk.Entry(panel_top, width=10)
-        self.entry_capacidad.insert(0, "50")
+        self.entry_capacidad.insert(0, "500")
         self.entry_capacidad.pack(side="left", padx=5)
 
         ttk.Label(panel_top, text="Algoritmo:").pack(side="left", padx=(20, 5))
