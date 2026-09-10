@@ -5,17 +5,17 @@ from modelos.paquete import Paquete
 
 
 def _cantidad_decimales(valor: float) -> int:
-    # revisa cuantos decimales tenemos que conservar
+    "revisa cuantos decimales tenemos que conservar"
     decimal = Decimal(str(valor)).normalize()
     return max(0, -decimal.as_tuple().exponent)
 
 
 def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: float) -> Tuple[List[Paquete], float, float, float]:
-    # esta funcion va guardando resultados anteriores para no repetir tanto trabajo
+    "esta funcion va guardando resultados anteriores para no repetir tanto trabajo"
     inicio = time.perf_counter()
     n = len(paquetes)
-    # la tabla usa numeros enteros para no perder los decimales
-    # por ejemplo uno punto cinco kilos pasa a ser quince
+    "la tabla usa numeros enteros para no perder los decimales"
+    "por ejemplo uno punto cinco kilos pasa a ser quince"
     precision = max(
         [_cantidad_decimales(capacidad_maxima)]
         + [_cantidad_decimales(p.peso) for p in paquetes]
@@ -23,11 +23,11 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
     escala = 10 ** precision
     capacidad = int(Decimal(str(capacidad_maxima)) * escala)
 
-    # cada fila representa paquetes revisados y cada columna una capacidad
-    # en cada espacio guardamos la mayor ganancia encontrada
+    "cada fila representa paquetes revisados y cada columna una capacidad"
+    "en cada espacio guardamos la mayor ganancia encontrada"
     dp = [[0.0 for _ in range(capacidad + 1)] for _ in range(n + 1)]
 
-    # para cada paquete elegimos si usarlo o dejar la mejor opcion anterior
+    "para cada paquete elegimos si usarlo o dejar la mejor opcion anterior"
     for i in range(1, n + 1):
         p = paquetes[i - 1]
         peso_int = int(Decimal(str(p.peso)) * escala)
@@ -37,7 +37,7 @@ def resolver_programacion_dinamica(paquetes: List[Paquete], capacidad_maxima: fl
             else:
                 dp[i][w] = dp[i - 1][w]
 
-    # recorremos la tabla hacia atras para saber que paquetes formaron la respuesta
+    "recorremos la tabla hacia atras para saber que paquetes formaron la respuesta"
     seleccionados = []
     w = capacidad
     for i in range(n, 0, -1):
