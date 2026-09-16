@@ -1,6 +1,8 @@
 import csv
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 
 from modelos.paquete import Paquete
 from algoritmos.fuerza_bruta import resolver_fuerza_bruta
@@ -71,6 +73,9 @@ class VentanaOptimizador(tk.Tk):
         self.txt_resultados = tk.Text(frame_derecho, height=8, wrap="word", font=("Consolas", 10))
         self.txt_resultados.pack(fill="x", padx=5, pady=(0, 5))
 
+        self.frame_grafica = ttk.LabelFrame(frame_derecho, text=" Tiempo de ejecución ", padding=5)
+        self.frame_grafica.pack(fill="both", expand=True, padx=5)
+
     def _cargar_csv(self):
         # lee el archivo y convierte cada fila en un objeto paquete
         ruta = filedialog.askopenfilename(filetypes=[("Archivos CSV", "*.csv")])
@@ -117,6 +122,7 @@ class VentanaOptimizador(tk.Tk):
         self.txt_resultados.delete("1.0", tk.END)
         items, peso, val, t = resolver_fuerza_bruta(self.paquetes, capacidad)
         self._mostrar_resumen("Fuerza Bruta", items, peso, val, t)
+        self._dibujar_tiempo(t)
 
     def _mostrar_resumen(self, metodo: str, items: list, peso: float, val: float, t: float):
         # prepara el texto que se muestra despues de cada algoritmo
@@ -126,4 +132,26 @@ class VentanaOptimizador(tk.Tk):
                  f" • Peso Total: {peso:.2f} kg | Ganancia: ${val:.2f} | Tiempo: {t:.4f} ms\n"
                  f"{'-' * 75}\n")
         self.txt_resultados.insert(tk.END, linea)
+
+    def _dibujar_tiempo(self, tiempo):
+        # muestra en una barra cuanto tardo fuerza bruta
+        for widget in self.frame_grafica.winfo_children():
+            widget.destroy()
+
+        fig, ax = plt.subplots(figsize=(5, 3.2), dpi=100)
+        barra = ax.bar(["Fuerza Bruta"], [tiempo], color="#e74c3c")
+        ax.set_ylabel("Tiempo (milisegundos)")
+        ax.set_title("Tiempo de ejecución")
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        for elemento in barra:
+            ax.text(elemento.get_x() + elemento.get_width() / 2,
+                    elemento.get_height(), f"{tiempo:.4f} ms",
+                    ha="center", va="bottom", fontsize=9)
+
+        fig.tight_layout()
+        canvas = FigureCanvasTkAgg(fig, master=self.frame_grafica)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        plt.close(fig)
 
