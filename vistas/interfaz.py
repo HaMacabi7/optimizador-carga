@@ -1,14 +1,9 @@
 import csv
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
 
 from modelos.paquete import Paquete
 from algoritmos.fuerza_bruta import resolver_fuerza_bruta
-from algoritmos.voraz import resolver_voraz
-from algoritmos.backtracking import resolver_backtracking
-from algoritmos.programacion_dinamica import resolver_programacion_dinamica
 
 
 class VentanaOptimizador(tk.Tk):
@@ -37,11 +32,11 @@ class VentanaOptimizador(tk.Tk):
         ttk.Label(panel_top, text="Algoritmo:").pack(side="left", padx=(20, 5))
         self.combo_algoritmo = ttk.Combobox(
             panel_top,
-            values=["Fuerza Bruta", "Voraz (Greedy)", "Backtracking", "Programación Dinámica", "Comparar Todos"],
+            values=["Fuerza Bruta"],
             state="readonly",
             width=22
         )
-        self.combo_algoritmo.current(4)  # dejamos comparar todos como opcion inicial
+        self.combo_algoritmo.current(0)  # dejamos fuerza bruta como opcion inicial
         self.combo_algoritmo.pack(side="left", padx=5)
 
         ttk.Button(panel_top, text="▶ Ejecutar Optimización", command=self._ejecutar).pack(side="left", padx=15)
@@ -76,9 +71,6 @@ class VentanaOptimizador(tk.Tk):
         self.txt_resultados = tk.Text(frame_derecho, height=8, wrap="word", font=("Consolas", 10))
         self.txt_resultados.pack(fill="x", padx=5, pady=(0, 5))
 
-        self.frame_grafica = ttk.LabelFrame(frame_derecho, text=" Métricas de Rendimiento ", padding=5)
-        self.frame_grafica.pack(fill="both", expand=True, padx=5)
-
     def _cargar_csv(self):
         # lee el archivo y convierte cada fila en un objeto paquete
         ruta = filedialog.askopenfilename(filetypes=[("Archivos CSV", "*.csv")])
@@ -102,7 +94,7 @@ class VentanaOptimizador(tk.Tk):
             messagebox.showerror("Error de lectura", f"No se pudo leer el archivo CSV:\n{e}")
 
     def _ejecutar(self):
-        # toma la capacidad y ejecuta el algoritmo que eligio el usuario
+        # toma la capacidad y ejecuta fuerza bruta en este primer avance
         if not self.paquetes:
             messagebox.showwarning("Aviso", "Primero debe cargar un archivo CSV con paquetes.")
             return
@@ -115,50 +107,16 @@ class VentanaOptimizador(tk.Tk):
             messagebox.showerror("Error", "La capacidad debe ser un número mayor a cero.")
             return
 
-        # la fuerza bruta revisa todas las combinaciones y puede tardar mucho
         # por eso frenamos cargas grandes para que la ventana no se congele
-        if len(self.paquetes) > 22 and self.combo_algoritmo.get() in ["Fuerza Bruta", "Comparar Todos"]:
+        if len(self.paquetes) > 20:
             messagebox.showwarning("Límite de Fuerza Bruta",
                                    f"Fuerza Bruta tiene complejidad O(2^n). Con {len(self.paquetes)} paquetes "
                                    "tomaría demasiado tiempo. Ejecútelo con máximo 20 paquetes.")
             return
 
-        seleccion = self.combo_algoritmo.get()
         self.txt_resultados.delete("1.0", tk.END)
-
-        tiempos = []
-        nombres = []
-
-        if seleccion in ["Fuerza Bruta", "Comparar Todos"]:
-            # busca la mejor respuesta revisando todas las combinaciones
-            items, peso, val, t = resolver_fuerza_bruta(self.paquetes, capacidad)
-            self._mostrar_resumen("Fuerza Bruta", items, peso, val, t)
-            nombres.append("Fuerza Bruta")
-            tiempos.append(t)
-
-        if seleccion in ["Voraz (Greedy)", "Comparar Todos"]:
-            # empieza por los paquetes con mejor valor por kilo
-            items, peso, val, t = resolver_voraz(self.paquetes, capacidad)
-            self._mostrar_resumen("Voraz (Greedy)", items, peso, val, t)
-            nombres.append("Voraz")
-            tiempos.append(t)
-
-        if seleccion in ["Backtracking", "Comparar Todos"]:
-            # prueba caminos y descarta los que ya superan la capacidad
-            items, peso, val, t = resolver_backtracking(self.paquetes, capacidad)
-            self._mostrar_resumen("Backtracking", items, peso, val, t)
-            nombres.append("Backtracking")
-            tiempos.append(t)
-
-        if seleccion in ["Programación Dinámica", "Comparar Todos"]:
-            # aprovecha resultados anteriores para no repetir tantos calculos
-            items, peso, val, t = resolver_programacion_dinamica(self.paquetes, capacidad)
-            self._mostrar_resumen("Prog. Dinámica", items, peso, val, t)
-            nombres.append("Prog. Dinámica")
-            tiempos.append(t)
-
-        if seleccion == "Comparar Todos":
-            self._dibujar_grafica(nombres, tiempos)
+        items, peso, val, t = resolver_fuerza_bruta(self.paquetes, capacidad)
+        self._mostrar_resumen("Fuerza Bruta", items, peso, val, t)
 
     def _mostrar_resumen(self, metodo: str, items: list, peso: float, val: float, t: float):
         # prepara el texto que se muestra despues de cada algoritmo
@@ -169,26 +127,3 @@ class VentanaOptimizador(tk.Tk):
                  f"{'-' * 75}\n")
         self.txt_resultados.insert(tk.END, linea)
 
-    def _dibujar_grafica(self, nombres: list, tiempos: list):
-        # crea una grafica sencilla para comparar los tiempos
-        for widget in self.frame_grafica.winfo_children():
-            widget.destroy()
-
-        fig, ax = plt.subplots(figsize=(5, 3.2), dpi=100)
-        colores = ["#e74c3c", "#3498db", "#f39c12", "#2ecc71"]
-        barras = ax.bar(nombres, tiempos, color=colores[:len(nombres)])
-
-        ax.set_ylabel("Tiempo (milisegundos)")
-        ax.set_title("Comparativa de Tiempo de Ejecución")
-        ax.grid(axis="y", linestyle="--", alpha=0.7)
-
-        for bar in barras:
-            yval = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width() / 2, yval, f"{yval:.4f}", ha="center", va="bottom", fontsize=8)
-
-        fig.tight_layout()
-
-        canvas = FigureCanvasTkAgg(fig, master=self.frame_grafica)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
-        plt.close(fig)
