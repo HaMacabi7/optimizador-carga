@@ -157,7 +157,8 @@ class VentanaOptimizador(tk.Tk):
             nombres.append("Prog. Dinámica")
             tiempos.append(t)
 
-        if seleccion == "Comparar Todos":
+        # si se ejecuta uno muestra una barra y si se comparan todos muestra varias
+        if nombres:
             self._dibujar_grafica(nombres, tiempos)
 
     def _mostrar_resumen(self, metodo: str, items: list, peso: float, val: float, t: float):
