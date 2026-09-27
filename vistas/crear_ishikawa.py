@@ -20,15 +20,15 @@ def generar_diagrama_ishikawa_opticarga():
     c_rojo_borde = '#E63946'
     c_rojo_titulo = '#FF4D6D'
 
-    # 1. TÍTULO SUPERIOR
+
     ax.text(0.6, 9.4, "DIAGRAMA DE ISHIKAWA — SISTEMA DE OPTIMIZACIÓN LOGÍSTICA (OPTICARGA)", 
             color='white', fontsize=13.5, fontweight='bold', ha='left', va='center')
 
-    # 2. ESPINA CENTRAL HORIZONTAL
+
     ax.annotate("", xy=(12.3, 4.8), xytext=(0.6, 4.8),
                 arrowprops=dict(arrowstyle="-|>", color=c_linea_central, lw=4.5, mutation_scale=28))
 
-    # 3. CABEZA DEL PEZ (PROBLEMA PRINCIPAL)
+
     puntos_cabeza = [
         [12.6, 6.5],
         [16.0, 6.5],
@@ -53,8 +53,7 @@ def generar_diagrama_ishikawa_opticarga():
     ax.text(14.3, 4.5, texto_problema, color='#FFFFFF', 
             fontsize=9.0, ha='center', va='center', linespacing=1.25)
 
-    # 4. DIBUJAR ESPINAS 1 Y 2 (MÉTODOS, DATOS, MANO DE OBRA, MEDICIÓN)
-    # Formato: (xc, xa, titulo_sup, causas_sup, titulo_inf, causas_inf)
+
     pares_izq = [
         (2.2, 3.6, "MÉTODOS", [
             "• Selección manual y empírica",
@@ -99,10 +98,9 @@ def generar_diagrama_ishikawa_opticarga():
             ax.plot([x_d - 0.5, x_d], [y_n, y_n], color=c_subespina, lw=1.3, linestyle=":")
             ax.text(x_d - 0.6, y_n, causas_i[idx], color=c_texto_causa, fontsize=8.0, ha='right', va='center')
 
-    # 5. ESPINA 3: TECNOLOGÍA Y LOGÍSTICA (TEXTOS A LA DERECHA, EN EL HUECO ROJO)
+
     xc3, xa3 = 8.8, 10.2
 
-    # --- Superior: TECNOLOGÍA ---
     ax.plot([xc3, xa3], [8.05, 4.8], color=c_espina, lw=2.5)
     ax.text(xc3, 8.5, "TECNOLOGÍA", color=c_texto_espina, fontsize=9.5, fontweight='bold', ha='center', va='center',
             bbox=dict(boxstyle="round,pad=0.5,rounding_size=0.3", facecolor=c_caja_categoria, edgecolor=c_borde_categoria, lw=1.8))
@@ -120,7 +118,7 @@ def generar_diagrama_ishikawa_opticarga():
         # Texto colocado a la derecha exactamente en la zona indicada
         ax.text(x_d + 0.6, y_n, causas_tec[idx], color=c_texto_causa, fontsize=8.0, ha='left', va='center')
 
-    # --- Inferior: LOGÍSTICA Y TIEMPOS ---
+
     ax.plot([xc3, xa3], [1.55, 4.8], color=c_espina, lw=2.5)
     ax.text(xc3, 1.1, "LOGÍSTICA Y TIEMPOS", color=c_texto_espina, fontsize=9.5, fontweight='bold', ha='center', va='center',
             bbox=dict(boxstyle="round,pad=0.5,rounding_size=0.3", facecolor=c_caja_categoria, edgecolor=c_borde_categoria, lw=1.8))
