@@ -14,6 +14,9 @@ from algoritmos.programacion_dinamica import resolver_programacion_dinamica
 
 
 class VentanaOptimizador(tk.Tk):
+    MAX_PAQUETES_EXHAUSTIVOS = 20
+    ALGORITMOS_EXHAUSTIVOS = {"Fuerza Bruta", "Backtracking"}
+
     # esta clase arma la ventana y conecta los botones con los algoritmos
     def __init__(self):
         super().__init__()
@@ -499,14 +502,17 @@ class VentanaOptimizador(tk.Tk):
             return
 
         nombres_seleccionados = list(algoritmos) if seleccion == "Comparar Todos" else [seleccion]
-        algoritmos_exhaustivos = {"Fuerza Bruta", "Backtracking"}
-        if len(paquetes_disponibles) > 20 and any(
-            nombre in algoritmos_exhaustivos for nombre in nombres_seleccionados
+        if len(paquetes_disponibles) > self.MAX_PAQUETES_EXHAUSTIVOS and any(
+            nombre in self.ALGORITMOS_EXHAUSTIVOS for nombre in nombres_seleccionados
         ):
+            combinaciones = 2 ** len(paquetes_disponibles)
             messagebox.showwarning(
                 "Límite de búsqueda exhaustiva",
-                f"La optimización evaluaría {len(paquetes_disponibles)} paquetes. Fuerza Bruta y Backtracking "
-                "están limitados a 20 paquetes; seleccione Voraz o Programación Dinámica."
+                f"Con {len(paquetes_disponibles)} paquetes, la optimización evaluaría aproximadamente "
+                f"{combinaciones:,} combinaciones posibles.\n\n"
+                "Fuerza Bruta y Backtracking tienen complejidad exponencial (2^n), por lo que se limita "
+                f"la entrada a {self.MAX_PAQUETES_EXHAUSTIVOS} paquetes para mantener la aplicación estable.\n\n"
+                "Seleccione Voraz o Programación Dinámica para trabajar con conjuntos más grandes."
             )
             return
 
